@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbwp6gNX7qrYeQSXdXUa41tZ64d1wWu_A_-y_NIvV2YVVKZ3G_iH5gtqgMnqJFSLvEKGmQ/exec";
+    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbzbPz4sh9Hyamq4PvAnOzd1Q6n4o8rFKfbOeljmAE2UDwKoe3i2b7OV1P2gZqxhcbCA0Q/exec";
 
     console.log("[Vercel] Apps Script로 전송 시작");
     console.log("[Vercel] 보낼 데이터:", req.body);
@@ -42,5 +42,6 @@ export default async function handler(req, res) {
     });
   }
 }
+
 
 
