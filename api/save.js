@@ -73,43 +73,46 @@ export default async function handler(req, res) {
   }
 }
 
-// 해당 userId 행들 삭제 (헤더는 유지)
 async function clearUserData(token, sheetName, userId) {
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${process.env.SPREADSHEET_ID}/values/${sheetName}`;
-  
-  const getRes = await fetch(url, {
+  const baseUrl = `https://sheets.googleapis.com/v4/spreadsheets/${process.env.SPREADSHEET_ID}/values/${sheetName}`;
+
+  // 1. 현재 데이터 전체 읽기
+  const getRes = await fetch(baseUrl, {
     headers: { Authorization: `Bearer ${token}` }
   });
-  
+
   if (!getRes.ok) {
-    console.error(`Read failed for ${sheetName}: ${getRes.status}`);
+    console.error(`읽기 실패 ${sheetName}: ${getRes.status}`);
     return;
   }
 
   const data = await getRes.json();
-  const rows = data.values || [];
+  let rows = data.values || [];
 
-  // 헤더 유지 + userId가 다른 행만 남김
-  const keepRows = rows.filter((row, index) => {
-    if (index === 0) return true; // 헤더 행
-    return row[0] !== userId;
+  if (rows.length <= 1) return; // 헤더만 있거나 비어있으면 스킵
+
+  // 2. 헤더는 유지, userId 일치하는 행만 제거
+  const header = rows[0];
+  const filteredRows = rows.slice(1).filter(row => row[0] !== userId);
+
+  // 3. 다시 헤더 + 필터링된 행으로 구성
+  const newValues = [header, ...filteredRows];
+
+  // 4. 전체 범위 덮어쓰기 (가장 확실한 방법)
+  const putRes = await fetch(`${baseUrl}?valueInputOption=RAW`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ values: newValues })
   });
 
-  // 변경된 내용으로 덮어쓰기
-  const putRes = await fetch(
-    `${url}?valueInputOption=RAW`,
-    {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ values: keepRows })
-    }
-  );
-
   if (!putRes.ok) {
-    console.error(`Clear PUT failed for ${sheetName}: ${putRes.status}`);
+    const err = await putRes.text();
+    console.error(`삭제 PUT 실패 ${sheetName}: ${putRes.status} - ${err}`);
+  } else {
+    console.log(`삭제 성공 ${sheetName}: ${filteredRows.length}개 남음`);
   }
 }
 
@@ -169,3 +172,4 @@ async function getAccessToken() {
   }
   return tokenData.access_token;
 }
+
