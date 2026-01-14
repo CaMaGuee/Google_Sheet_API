@@ -13,14 +13,25 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // OPTIONS preflight 요청 처리 (CORS 에러의 핵심 해결)
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
+  if (req.method === "OPTIONS") return res.status(200).end();
   // POST만 허용
   if (req.method !== "POST") {
     return res.status(405).json({ success: false, error: "Method Not Allowed" });
+  }
+
+  try {
+    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbyCnp4N9CS7vmthJMlFnaCWzEtI4IV5SwP3mehi8J2fVBwO1IshDvg5Nm9FO2Bxr1d7MQ/exec";
+
+    const response = await fetch(appsScriptUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body)
+    });
+
+    const result = await response.json();
+    res.status(response.status).json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 
   const { userId, annualOccurrences = [], weekendSubHolidays = [], usedHolidays = [], usedSubHolidays = [] } = req.body;
@@ -129,5 +140,6 @@ async function getAccessToken() {
   }
   return tokenData.access_token;
 }
+
 
 
