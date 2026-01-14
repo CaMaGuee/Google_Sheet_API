@@ -67,7 +67,7 @@ export default async function handler(req, res) {
       }
     }
 
-    res.status(200).json({ rows: [result] });  // 프론트에서 rows[0]으로 접근하도록
+    res.status(200).json(result);  // 프론트에서 rows[0]으로 접근하도록
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to load data" });
@@ -108,3 +108,4 @@ async function getAccessToken() {
   if (!tokenData.access_token) throw new Error("Failed to get access token");
   return tokenData.access_token;
 }
+
