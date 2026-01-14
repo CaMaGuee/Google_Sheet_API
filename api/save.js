@@ -1,4 +1,4 @@
-import crypto from "crypto";  // ← 이건 이제 필요 없음 (삭제 가능)
+import crypto from "crypto";
 
 export default async function handler(req, res) {
   // CORS 설정 (항상 맨 위에)
@@ -42,3 +42,4 @@ export default async function handler(req, res) {
     });
   }
 }
+
